@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" data-color-mode="auto" data-light-theme="light" data-dark-theme="dark"
+  data-a11y-animated-images="system">
+
+<head>
+  <meta charset="utf-8">
+  <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.js">
+  </script>
+
+  <style>
+    html {
+      height: 100%;
+    }
+
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      font: small arial, sans-serif;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 100;
+      color: white;
+      padding: 0;
+      background: #fafafa;
+      position: relative;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      opacity: .2;
+      height: 200px;
+      width: 200px;
+    }
+
+    canvas:hover {
+      opacity: 1;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div id="debug">
+    
+  </div>
+
+
+  <script type="application/javascript">
+    setTimeout(function () {
+      // module aliases
+      var Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Bodies = Matter.Bodies,
+        Body = Matter.Body,
+        Composite = Matter.Composite;
+
+      // create an engine
+      var engine = Engine.create();
+
+
+
+      var render = Render.create({
+        element: document.getElementById("debug"),
+        engine: engine,
+        options: {
+          width: 1000,
+          height: 1000,
+          background: '#fafafa',
+          wireframeBackground: '#222',
+          hasBounds: false,
+          enabled: true,
+          wireframes: true,
+          showSleeping: true,
+          showDebug: false,
+          showBroadphase: false,
+          showBounds: false,
+          showVelocity: true,
+          showCollisions: false,
+          showAxes: false,
+          showPositions: false,
+          showAngleIndicator: false,
+          showIds: false,
+          showShadows: false
+        }
+      });
+
+
+      function Shape(x, y, worldBoundsX, worldBoundsY) {
+        this.setWorldBounds(worldBoundsX, worldBoundsY);
+
+        this.setWorldSize(46, 65);
+        this.setPositionByWorld(x, y);
+        this.createElement();
+        this.createPhysicsBody();
+      }
+      Shape.prototype.createElement = function () {
+        this.element = document.createElement("div");
+        this.element.style.width = "" + this.getWorldWidth() + "px";
+        this.element.style.height = "" + this.getWorldHeight() + "px";
+        this.element.style.position = "absolute";
+        this.element.style.backgroundImage =
+          "url('https://raw.githubusercontent.com/27-Nerds/27/main/assets/images/icons/rabbit.svg')";
+        document.body.appendChild(this.element);
+
+      }
+
+      Shape.prototype.setPosition = function (x, y) {
+        this.x = x;
+        this.y = y;
+      };
+
+      Shape.prototype.setPositionByWorld = function (x, y) {
+        this.x = x * (1000 / this.worldBoundsX);
+        this.y = y * (1000 / this.worldBoundsY);
+      }
+
+      Shape.prototype.setSize = function (width, height) {
+        this.width = width;
+        this.height = height;
+      };
+
+      Shape.prototype.setWorldSize = function (width, height) {
+        this.width = width * (1000 / this.worldBoundsX);
+        this.height = height * 0.97 * (1000 / this.worldBoundsY);
+      };
+
+      Shape.prototype.setWorldBounds = function (x, y) {
+        this.worldBoundsX = x;
+        this.worldBoundsY = y;
+      };
+
+      Shape.prototype.getWorldX = function () {
+        return this.body.position.x / (1000 / this.worldBoundsX);
+      }
+
+      Shape.prototype.getWorldY = function () {
+        return this.body.position.y / (1000 / this.worldBoundsY);
+      }
+
+      Shape.prototype.getWorldWidth = function () {
+        return this.width / (1000 / this.worldBoundsX);
+      }
+
+      Shape.prototype.getWorldHeight = function () {
+        return this.height / (1000 / this.worldBoundsY) * 1.03;
+      }
+
+
+      Shape.prototype.animate = function () {
+        this.element.style.transform = "translate( " +
+          this.getWorldX() +
+          "px, " +
+          this.getWorldY() +
+          "px )";
+        this.element.style.transform += "rotate( " + this.body.angle + "rad )";
+      }
+
+      Shape.prototype.createPhysicsBody = function () {
+        this.body = Bodies.rectangle(this.x, this.y, this.width, this.height);
+
+        Body.setMass(this.body, 0.0000001);
+      }
+
+      Shape.prototype.getPhysicsBody = function () {
+        return this.body
+      }
+
+
+      var ground = Bodies.rectangle(0, 1000, 5000, 10, {
+        isStatic: true
+      });
+
+      // add all of the bodies to the world
+      Composite.add(engine.world, [ground]);
+
+      // run the renderer
+      Render.run(render);
+      // create runner
+      var runner = Runner.create();
+
+      // run the engine
+      Runner.run(runner, engine);
+
+
+      let shapes = [];
+      let x = 400;
+      let y = 0;
+
+      let box = document.querySelector('body');
+      let bWidth = box.offsetWidth;
+      let bHeight = box.offsetHeight;
+      for (let i = 0; i < 30; i++) {
+        setTimeout(function () {
+          shape = new Shape(x, y, bWidth, bHeight);
+          shapes.push(shape);
+
+          Composite.add(engine.world, shape.getPhysicsBody());
+        }, 130 * i);
+
+      }
+      document.body.addEventListener('click', event => {
+        shape = new Shape(event.offsetX - 20, event.offsetY - 30, bWidth, bHeight);
+
+        shapes.push(shape);
+
+        Composite.add(engine.world, shape.getPhysicsBody());
+      });
+
+
+
+      window.requestAnimationFrame(update);
+
+      function update() {
+        for (var i = 0, l = shapes.length; i < l; i++) {
+          shapes[i].animate();
+        }
+        window.requestAnimationFrame(update);
+      }
+
+    }, 1000);
+  </script>
+</body>
+
+</html>
