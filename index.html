@@ -40,6 +40,7 @@
     canvas:hover {
       opacity: 1;
     }
+
     #debug {
       position: absolute;
     }
@@ -190,7 +191,6 @@
         return r;
       }
 
-
       Shape.prototype.animate = function () {
         // this.element.style.left =  "" + this.getRealX() + "px";
         // this.element.style.top =  "" + this.getRealY() + "px";
@@ -204,9 +204,7 @@
       }
 
       Shape.prototype.createPhysicsBody = function () {
-        this.body = Bodies.rectangle(this.x, this.y, this.width, this.height, {
-          friction: 0.5
-        });
+        this.body = Bodies.rectangle(this.x, this.y, this.width, this.height);
 
         // Body.setMass(this.body);
       }
@@ -215,8 +213,9 @@
         return this.body
       }
 
+      engine.world.gravity.scale = 0.00003;
 
-      var ground = Bodies.rectangle(0, 100, 6000, 100, {
+      var ground = Bodies.rectangle(0, 50, 1000, 5, {
         isStatic: true,
         friction: 1
       });
@@ -231,8 +230,6 @@
 
       // run the engine
       Runner.run(runner, engine);
-
-      engine.world.gravity.scale = 0.00005;
 
       let shapes = [];
       let x = 400;
@@ -258,8 +255,6 @@
 
         Composite.add(engine.world, shape.getPhysicsBody());
       });
-
-
 
       window.requestAnimationFrame(update);
 
