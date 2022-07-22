@@ -138,19 +138,19 @@
       };
 
       Shape.prototype.getWorldX = function () {
-        return this.body.position.x / (1000 / this.worldBoundsX);
+        return Math.round(this.body.position.x / (1000 / this.worldBoundsX));
       }
 
       Shape.prototype.getWorldY = function () {
-        return this.body.position.y / (1000 / this.worldBoundsY);
+        return Math.round(this.body.position.y / (1000 / this.worldBoundsY));
       }
 
       Shape.prototype.getWorldWidth = function () {
-        return this.width / (1000 / this.worldBoundsX);
+        return Math.round(this.width / (1000 / this.worldBoundsX));
       }
 
       Shape.prototype.getWorldHeight = function () {
-        return this.height / (1000 / this.worldBoundsY) * 1.03;
+        return Math.round(this.height / (1000 / this.worldBoundsY) * 1.03);
       }
 
 
@@ -164,9 +164,9 @@
       }
 
       Shape.prototype.createPhysicsBody = function () {
-        this.body = Bodies.rectangle(this.x, this.y, this.width, this.height);
+        this.body = Bodies.rectangle(this.x, this.y, this.width, this.height, {friction: 0.5});
 
-        Body.setMass(this.body, 0.0000001);
+        // Body.setMass(this.body);
       }
 
       Shape.prototype.getPhysicsBody = function () {
@@ -174,8 +174,9 @@
       }
 
 
-      var ground = Bodies.rectangle(0, 1000, 5000, 10, {
-        isStatic: true
+      var ground = Bodies.rectangle(0, 950, 6000, 100, {
+        isStatic: true,
+        friction: 1
       });
 
       // add all of the bodies to the world
