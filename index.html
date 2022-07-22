@@ -8,7 +8,7 @@
   </script>
 
   <style>
-   html {
+    html {
       height: 100%;
     }
 
@@ -40,7 +40,9 @@
     canvas:hover {
       opacity: 1;
     }
-
+    #debug {
+      position: absolute;
+    }
   </style>
 
 </head>
@@ -48,7 +50,7 @@
 <body>
 
   <div id="debug">
-    
+
   </div>
 
 
@@ -132,32 +134,60 @@
       };
 
       Shape.prototype.setRealSize = function (width, height) {
-        this.width = width * (100 / this.worldBoundsX) * this.aspectRatio;
+        this.width = width * (100 / this.worldBoundsX);
         this.height = height * (100 / this.worldBoundsY);
+
+        if (this.aspectRatio < 1) {
+          this.width = this.width * this.aspectRatio;
+        } else {
+          this.height = this.height / this.aspectRatio;
+        }
       };
 
       Shape.prototype.setWorldBounds = function (x, y) {
         this.worldBoundsX = x;
         this.worldBoundsY = y;
         this.aspectRatio = this.worldBoundsX / this.worldBoundsY;
+        console.log(this.aspectRatio);
       };
 
       Shape.prototype.getRealX = function () {
-        return (this.body.position.x / (100 / this.worldBoundsX));
+        var r = (this.body.position.x / (100 / this.worldBoundsX));
+        if (this.aspectRatio < 1) {
+          r = r * this.aspectRatio;
+        }
+        return r;
+        // return (this.body.position.x / (100 / this.worldBoundsX));
         // return Math.round(this.body.bounds.min.x / (100 / this.worldBoundsX));
       }
 
       Shape.prototype.getRealY = function () {
-        return (this.body.position.y / (100 / this.worldBoundsY));
+        // return (this.body.position.y / (100 / this.worldBoundsY));
+        var r = (this.body.position.y / (100 / this.worldBoundsY));
+        if (this.aspectRatio > 1) {
+          r = r * this.aspectRatio;
+        }
+        return r;
         // return Math.round(this.body.bounds.min.y / (100 / this.worldBoundsY));
       }
 
       Shape.prototype.getRealWidth = function () {
-        return (this.width / (100 / this.worldBoundsX) / this.aspectRatio);
+        var r = (this.width / (100 / this.worldBoundsX));
+        if (this.aspectRatio < 1) {
+          r = r / this.aspectRatio;
+        }
+        // } else {
+        //   r = r * this.aspectRatio;
+        // }
+        return r;
       }
 
       Shape.prototype.getRealHeight = function () {
-        return (this.height / (100 / this.worldBoundsY));
+        var r = (this.height / (100 / this.worldBoundsY));
+        if (this.aspectRatio > 1) {
+          r = r * this.aspectRatio;
+        }
+        return r;
       }
 
 
@@ -174,7 +204,9 @@
       }
 
       Shape.prototype.createPhysicsBody = function () {
-        this.body = Bodies.rectangle(this.x, this.y, this.width, this.height, {friction: 0.5});
+        this.body = Bodies.rectangle(this.x, this.y, this.width, this.height, {
+          friction: 0.5
+        });
 
         // Body.setMass(this.body);
       }
@@ -184,7 +216,7 @@
       }
 
 
-      var ground = Bodies.rectangle(0, 130, 6000, 100, {
+      var ground = Bodies.rectangle(0, 100, 6000, 100, {
         isStatic: true,
         friction: 1
       });
@@ -200,15 +232,15 @@
       // run the engine
       Runner.run(runner, engine);
 
-      engine.world.gravity.scale = 0.00005 
+      engine.world.gravity.scale = 0.00005;
 
       let shapes = [];
       let x = 400;
       let y = 0;
 
-      let box = document.querySelector('body');
-      let bWidth = box.offsetWidth;
-      let bHeight = box.offsetHeight;
+
+      let bWidth = window.innerWidth;
+      let bHeight = window.innerHeight;
       for (let i = 0; i < 30; i++) {
         setTimeout(function () {
           shape = new Shape(x, y, bWidth, bHeight);
@@ -219,7 +251,8 @@
 
       }
       document.body.addEventListener('click', event => {
-        shape = new Shape(event.offsetX - 20, event.offsetY - 30, bWidth, bHeight);
+        console.log(event);
+        shape = new Shape(event.x - 20, event.y - 30, bWidth, bHeight);
 
         shapes.push(shape);
 
