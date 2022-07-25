@@ -56,13 +56,164 @@
 
 
   <script type="application/javascript">
+    function Shape(x, y, world) {
+      this.setWorld(world);
+
+      this.setRealSize(47, 66);
+      this.setRealPosition(x, y);
+      this.createElement();
+      this.createPhysicsBody();
+    }
+
+    Shape.prototype.createElement = function () {
+      this.element = document.createElement("div");
+      this.element.style.width = "" + this.getRealWidth() + "px";
+      this.element.style.height = "" + this.getRealHeight() + "px";
+      this.element.style.position = "absolute";
+      this.element.style.left = "0px";
+      this.element.style.top = "0px";
+      this.element.style["transform-origin"] = "center";
+      this.element.style["background-size"] = "cover";
+      this.element.style.backgroundImage =
+        "url('https://raw.githubusercontent.com/27-Nerds/27/main/assets/images/icons/rabbit.svg')";
+      document.body.appendChild(this.element);
+
+    }
+
+    Shape.prototype.setPosition = function (x, y) {
+      this.x = x;
+      this.y = y;
+    };
+
+    Shape.prototype.setRealPosition = function (x, y) {
+      this.x = x * this.world.aspectRatioX;
+      this.y = y * this.world.aspectRatioY;
+    }
+
+    Shape.prototype.setSize = function (width, height) {
+      this.width = width;
+      this.height = height;
+    };
+
+    Shape.prototype.setRealSize = function (width, height) {
+      this.width = width * this.world.aspectRatioX ;
+      this.height = height * this.world.aspectRatioY;
+
+      // if (this.world.aspectRatio < 1) {
+      //   this.width = this.width * this.world.aspectRatio;
+      //   // this.height = this.height * this.world.aspectRatio;
+
+      // } else {
+      //   this.width = this.width / this.world.aspectRatio;
+      //   // this.height = this.height / this.world.aspectRatio;
+      // }
+    };
+
+    Shape.prototype.setWorld = function (world) {
+      this.world = world;
+    }
+
+    Shape.prototype.getRealX = function () {
+      return (this.body.position.x / this.world.aspectRatioX);
+
+      // return (this.body.position.x / (100 / this.world.boundsX));
+      // return Math.round(this.body.bounds.min.x / (100 / this.world.boundsX));
+    }
+
+    Shape.prototype.getRealY = function () {
+      return (this.body.position.y / this.world.aspectRatioY);
+
+      // return Math.round(this.body.bounds.min.y / (100 / this.world.boundsY));
+    }
+
+    Shape.prototype.getRealWidth = function () {
+      let r = (this.width / this.world.aspectRatioX);
+      // if (this.world.aspectRatio < 1) {
+      //   r = r / this.world.aspectRatio;
+      // } else {
+      //   r = r * this.world.aspectRatio;
+      // }
+      return r;
+    }
+
+    Shape.prototype.getRealHeight = function () {
+      let r =  (this.height / this.world.aspectRatioY);
+  
+      return r;
+    }
+
+    Shape.prototype.animate = function () {
+      // this.element.style.left =  "" + this.getRealX() + "px";
+      // this.element.style.top =  "" + this.getRealY() + "px";
+
+      this.element.style.transform = "translate( " +
+        this.getRealX() +
+        "px, " +
+        this.getRealY() +
+        "px )";
+      this.element.style.transform += "rotate( " + this.body.angle + "rad )";
+    }
+
+    Shape.prototype.createPhysicsBody = function () {
+      this.body = Matter.Bodies.rectangle(this.x, this.y, this.width, this.height);
+    }
+
+    Shape.prototype.getPhysicsBody = function () {
+      return this.body
+    }
+
+
+
+    function World(matterWorld, worldBoundsX, worldBoundsY) {
+      this.matterWorld = matterWorld;
+      this.matterWorld.gravity.scale = 0.0001;
+      this.innerSizeX = 100;
+      this.innerSizeY = 100;
+      this.shapes = [];
+
+      this.composite = Matter.Composite;
+      this.setBounds(worldBoundsX, worldBoundsY);
+      this.addFlor();
+    }
+
+    World.prototype.setBounds = function (x, y) {
+      this.boundsX = x;
+      this.boundsY = y;
+      this.aspectRatio = this.boundsX / this.boundsY;
+      this.aspectRatioX = this.innerSizeX / this.boundsX;
+      this.aspectRatioY = this.innerSizeY / this.boundsY;
+    };
+
+    World.prototype.addFlor = function () {
+      var ground = Matter.Bodies.rectangle(0, 100, 1000, 5, {
+        isStatic: true,
+        friction: 1
+      });
+
+      // add all of the bodies to the world
+      this.composite.add(this.matterWorld, [ground]);
+
+    }
+
+    World.prototype.addBunny = function (x, y) {
+      shape = new Shape(x, y, this);
+      this.shapes.push(shape);
+      this.composite.add(this.matterWorld, shape.getPhysicsBody());
+    }
+
+    World.prototype.animate = function () {
+      for (var i = 0, l = this.shapes.length; i < l; i++) {
+        this.shapes[i].animate();
+      }
+    }
+
+
+
     setTimeout(function () {
       // module aliases
       var Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
-        Bodies = Matter.Bodies,
-        Body = Matter.Body,
         Composite = Matter.Composite;
 
       // create an engine
@@ -96,132 +247,7 @@
       });
 
 
-      function Shape(x, y, worldBoundsX, worldBoundsY) {
-        this.setWorldBounds(worldBoundsX, worldBoundsY);
 
-        this.setRealSize(47, 66);
-        this.setRealPosition(x, y);
-        this.createElement();
-        this.createPhysicsBody();
-      }
-      Shape.prototype.createElement = function () {
-        this.element = document.createElement("div");
-        this.element.style.width = "" + this.getRealWidth() + "px";
-        this.element.style.height = "" + this.getRealHeight() + "px";
-        this.element.style.position = "absolute";
-        this.element.style.left = "0px";
-        this.element.style.top = "0px";
-        this.element.style["transform-origin"] = "center";
-        this.element.style["background-size"] = "cover";
-        this.element.style.backgroundImage =
-          "url('https://raw.githubusercontent.com/27-Nerds/27/main/assets/images/icons/rabbit.svg')";
-        document.body.appendChild(this.element);
-
-      }
-
-      Shape.prototype.setPosition = function (x, y) {
-        this.x = x;
-        this.y = y;
-      };
-
-      Shape.prototype.setRealPosition = function (x, y) {
-        this.x = x * (100 / this.worldBoundsX);
-        this.y = y * (100 / this.worldBoundsY);
-      }
-
-      Shape.prototype.setSize = function (width, height) {
-        this.width = width;
-        this.height = height;
-      };
-
-      Shape.prototype.setRealSize = function (width, height) {
-        this.width = width * (100 / this.worldBoundsX);
-        this.height = height * (100 / this.worldBoundsY);
-
-        if (this.aspectRatio < 1) {
-          this.width = this.width * this.aspectRatio;
-        } else {
-          this.height = this.height / this.aspectRatio;
-        }
-      };
-
-      Shape.prototype.setWorldBounds = function (x, y) {
-        this.worldBoundsX = x;
-        this.worldBoundsY = y;
-        this.aspectRatio = this.worldBoundsX / this.worldBoundsY;
-        console.log(this.aspectRatio);
-      };
-
-      Shape.prototype.getRealX = function () {
-        var r = (this.body.position.x / (100 / this.worldBoundsX));
-        if (this.aspectRatio < 1) {
-          r = r * this.aspectRatio;
-        }
-        return r;
-        // return (this.body.position.x / (100 / this.worldBoundsX));
-        // return Math.round(this.body.bounds.min.x / (100 / this.worldBoundsX));
-      }
-
-      Shape.prototype.getRealY = function () {
-        // return (this.body.position.y / (100 / this.worldBoundsY));
-        var r = (this.body.position.y / (100 / this.worldBoundsY));
-        if (this.aspectRatio > 1) {
-          r = r * this.aspectRatio;
-        }
-        return r;
-        // return Math.round(this.body.bounds.min.y / (100 / this.worldBoundsY));
-      }
-
-      Shape.prototype.getRealWidth = function () {
-        var r = (this.width / (100 / this.worldBoundsX));
-        if (this.aspectRatio < 1) {
-          r = r / this.aspectRatio;
-        }
-        // } else {
-        //   r = r * this.aspectRatio;
-        // }
-        return r;
-      }
-
-      Shape.prototype.getRealHeight = function () {
-        var r = (this.height / (100 / this.worldBoundsY));
-        if (this.aspectRatio > 1) {
-          r = r * this.aspectRatio;
-        }
-        return r;
-      }
-
-      Shape.prototype.animate = function () {
-        // this.element.style.left =  "" + this.getRealX() + "px";
-        // this.element.style.top =  "" + this.getRealY() + "px";
-
-        this.element.style.transform = "translate( " +
-          this.getRealX() +
-          "px, " +
-          this.getRealY() +
-          "px )";
-        this.element.style.transform += "rotate( " + this.body.angle + "rad )";
-      }
-
-      Shape.prototype.createPhysicsBody = function () {
-        this.body = Bodies.rectangle(this.x, this.y, this.width, this.height);
-
-        // Body.setMass(this.body);
-      }
-
-      Shape.prototype.getPhysicsBody = function () {
-        return this.body
-      }
-
-      engine.world.gravity.scale = 0.00003;
-
-      var ground = Bodies.rectangle(0, 50, 1000, 5, {
-        isStatic: true,
-        friction: 1
-      });
-
-      // add all of the bodies to the world
-      Composite.add(engine.world, [ground]);
 
       // run the renderer
       Render.run(render);
@@ -236,32 +262,25 @@
       let y = 0;
 
 
-      let bWidth = window.innerWidth;
-      let bHeight = window.innerHeight;
-      for (let i = 0; i < 30; i++) {
+      let bWidth = document.documentElement.clientWidth;
+      let bHeight = document.documentElement.clientHeight;
+      let world = new World(engine.world, bWidth, bHeight);
+      for (let i = 0; i < 1; i++) {
         setTimeout(function () {
-          shape = new Shape(x, y, bWidth, bHeight);
-          shapes.push(shape);
+          world.addBunny(x, y);
 
-          Composite.add(engine.world, shape.getPhysicsBody());
         }, 160 * i);
 
       }
       document.body.addEventListener('click', event => {
         console.log(event);
-        shape = new Shape(event.x - 20, event.y - 30, bWidth, bHeight);
-
-        shapes.push(shape);
-
-        Composite.add(engine.world, shape.getPhysicsBody());
+        world.addBunny(event.x - 20, event.y - 30);
       });
 
       window.requestAnimationFrame(update);
 
       function update() {
-        for (var i = 0, l = shapes.length; i < l; i++) {
-          shapes[i].animate();
-        }
+        world.animate();
         window.requestAnimationFrame(update);
       }
 
