@@ -86,8 +86,8 @@
     };
 
     Shape.prototype.setRealPosition = function (x, y) {
-      this.x = x * this.world.aspectRatioX;
-      this.y = y * this.world.aspectRatioY;
+      this.x = x * this.world.zoom;
+      this.y = y * this.world.zoom;
     }
 
     Shape.prototype.setSize = function (width, height) {
@@ -96,8 +96,8 @@
     };
 
     Shape.prototype.setRealSize = function (width, height) {
-      this.width = width * this.world.aspectRatioX ;
-      this.height = height * this.world.aspectRatioY;
+      this.width = width * this.world.zoom;
+      this.height = height * this.world.zoom;
 
       // if (this.world.aspectRatio < 1) {
       //   this.width = this.width * this.world.aspectRatio;
@@ -114,20 +114,20 @@
     }
 
     Shape.prototype.getRealX = function () {
-      return (this.body.position.x / this.world.aspectRatioX);
+      return (this.body.position.x / this.world.zoom);
 
       // return (this.body.position.x / (100 / this.world.boundsX));
       // return Math.round(this.body.bounds.min.x / (100 / this.world.boundsX));
     }
 
     Shape.prototype.getRealY = function () {
-      return (this.body.position.y / this.world.aspectRatioY);
+      return (this.body.position.y / this.world.zoom);
 
       // return Math.round(this.body.bounds.min.y / (100 / this.world.boundsY));
     }
 
     Shape.prototype.getRealWidth = function () {
-      let r = (this.width / this.world.aspectRatioX);
+      let r = (this.width / this.world.zoom);
       // if (this.world.aspectRatio < 1) {
       //   r = r / this.world.aspectRatio;
       // } else {
@@ -137,7 +137,7 @@
     }
 
     Shape.prototype.getRealHeight = function () {
-      let r =  (this.height / this.world.aspectRatioY);
+      let r =  (this.height / this.world.zoom);
   
       return r;
     }
@@ -180,12 +180,20 @@
       this.boundsX = x;
       this.boundsY = y;
       this.aspectRatio = this.boundsX / this.boundsY;
-      this.aspectRatioX = this.innerSizeX / this.boundsX;
-      this.aspectRatioY = this.innerSizeY / this.boundsY;
+      if (this.aspectRatio > 1) { // X > Y
+        this.innerSizeY = 100;
+        this.innerSizeX = 100 * this.aspectRatio;
+        this.zoom = this.innerSizeX / this.boundsX;
+
+      } else {
+        this.innerSizeX = 100;
+        this.innerSizeY = 100 * this.aspectRatio;
+        this.zoom = this.innerSizeY / this.boundsY;
+      }
     };
 
     World.prototype.addFlor = function () {
-      var ground = Matter.Bodies.rectangle(0, 100, 1000, 5, {
+      var ground = Matter.Bodies.rectangle(0, this.innerSizeY - 5, 1000, 5, {
         isStatic: true,
         friction: 1
       });
