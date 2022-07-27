@@ -137,8 +137,8 @@
     }
 
     Shape.prototype.getRealHeight = function () {
-      let r =  (this.height / this.world.zoom);
-  
+      let r = (this.height / this.world.zoom);
+
       return r;
     }
 
@@ -181,19 +181,17 @@
       this.boundsY = y;
       this.aspectRatio = this.boundsX / this.boundsY;
       if (this.aspectRatio > 1) { // X > Y
-        this.innerSizeY = 100;
-        this.innerSizeX = 100 * this.aspectRatio;
+        this.innerSizeX *= this.aspectRatio;
         this.zoom = this.innerSizeX / this.boundsX;
 
       } else {
-        this.innerSizeX = 100;
-        this.innerSizeY = 100 * this.aspectRatio;
+        this.innerSizeY *= this.aspectRatio;
         this.zoom = this.innerSizeY / this.boundsY;
       }
     };
 
     World.prototype.addFlor = function () {
-      var ground = Matter.Bodies.rectangle(0, this.innerSizeY - 5, 1000, 5, {
+      var ground = Matter.Bodies.rectangle(0, this.innerSizeY - 2, 1000, 2, {
         isStatic: true,
         friction: 1
       });
